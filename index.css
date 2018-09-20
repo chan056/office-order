@@ -1,0 +1,87 @@
+body {
+  padding: 0;
+  margin: 0;
+}
+div,
+li {
+  box-shadow: 0 0 1px #ddd;
+}
+.abs-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+#rooms {
+  display: flex;
+}
+.room {
+  flex-basis: 100px;
+  flex-grow: 1;
+  height: 100px;
+}
+#menu {
+  position: absolute;
+  width: 200px;
+}
+#menu .menu-item {
+  height: 60px;
+  line-height: 60px;
+  text-align: center;
+  cursor: pointer;
+}
+#shaft-wrapper {
+  width: 800px;
+  min-height: 200px;
+}
+.day-shaft {
+  height: 60px;
+}
+.day-shaft .ordered {
+  position: absolute;
+  background-color: #666;
+  min-width: 2px;
+  height: 60px;
+}
+#day-time-selector {
+  position: absolute;
+  height: 60px;
+  min-width: 10px;
+  display: none;
+  background-color: #ccc;
+}
+#day-time-selector .handler {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1px solid;
+  top: 50%;
+  margin-top: -10px;
+  background-color: #333;
+  cursor: e-resize;
+}
+#day-time-selector .handler i {
+  position: relative;
+  top: -40px;
+  left: -10px;
+  font-style: normal;
+}
+#day-time-selector .starter {
+  left: -10px;
+}
+#day-time-selector .ender {
+  right: -10px;
+}
+#day-time-selector #order-btn {
+  position: absolute;
+  top: 60px;
+  left: 0;
+}

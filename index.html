@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>会议室</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div id="rooms">
+        <div class="room">会议室1</div>
+        <div class="room">会议室2</div>
+        <div class="room">会议室3</div>
+    </div>
+
+    <div id="menu">
+        <div class="menu-item">预定</div>
+        <div class="menu-item">取消</div>
+    </div>
+
+    <div id="shaft-wrapper" class="abs-center">
+        <div class="day-shaft" class="clearfix">
+            <div class="ordered"></div>
+            <div class="ordered"></div>
+        </div>
+    </div>
+
+    <div id="day-time-selector">
+        <span class="starter handler">
+            <i></i>
+        </span>
+        <span class="ender handler">
+            <i></i>
+        </span>
+
+        <input type="button" value="预定" id="order-btn">
+    </div>
+</body>
+<script src="node_modules/zepto/dist/zepto.min.js"></script>
+<script src="index.js"></script>
+</html>
