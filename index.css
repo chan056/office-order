@@ -49,6 +49,8 @@ li {
   background-color: #666;
   min-width: 2px;
   height: 60px;
+  text-align: center;
+  color: #fff;
 }
 #day-time-selector {
   position: absolute;

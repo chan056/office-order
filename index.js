@@ -1,3 +1,7 @@
+var MINUTEMILLISECOND = 60 * 1000;
+var HOURMILLISECOND = 60 * MINUTEMILLISECOND;
+var DAYMILLISECOND = 24 * HOURMILLISECOND;
+
 var draftWrapper = $('#shaft-wrapper');
 var dayTimeSelector = $('#day-time-selector');
 var wrapperWidth = draftWrapper.width();
@@ -51,6 +55,7 @@ draftWrapper.on('clik', '.ordered', function(e){
         }
 
         if(i == t.find('.ordered').length - 1){
+            console.log(percentEnd)
             start = percentEnd;
             end = 1;
         }
@@ -75,40 +80,53 @@ draftWrapper.on('clik', '.ordered', function(e){
 $('#order-btn').on('click', function(){
     dayTimeSelector.hide();
 
-    timeToStamp($('.starter i').text());
-    timeToStamp($('.ender i').text());
+    zAjax('/order', {
+        startTime: timeToStamp($('.starter i').text()),
+        endTime: timeToStamp($('.ender i').text()),
+    }, function(){
+
+    })
 })
 
-DATA = [
-    [1537413810448, 1537413810448+10*60*1000],
-    [1537413810448+110*60*1000, 1537413810448+120*60*1000]
-]
+zAjax('/data', null, function(data){
+    // [{"id":1,"startTime":1537413810448,"endTime":1537414410448,"userId":1}]
+    var DATA = data;
 
-var MINUTEMILLISECOND = 60 * 1000;
-var HOURMILLISECOND = 60 * MINUTEMILLISECOND;
-var DAYMILLISECOND = 24 * HOURMILLISECOND;
+    var curShaft = $('.day-shaft').eq(0).empty();
+    
+    DATA.forEach(function(order, index){
+        var orderPosPercent = stampToPos();
+        var startPercnet = orderPosPercent.start;
+        var endPercnet = orderPosPercent.end;
 
-DATA.forEach(function(order, index){
-    var orderStartDate = new Date(order[0]);
-    var orderEndDate = new Date(order[1]);
-
-    var startHours = orderStartDate.getHours();
-    var startMinutes = orderStartDate.getMinutes();
-
-    var endHours = orderEndDate.getHours();
-    var endMinutes = orderEndDate.getMinutes();
-
-    var startMilliSecondOfDay = startHours * HOURMILLISECOND + startMinutes * MINUTEMILLISECOND;
-    var endMilliSecondOfDay = endHours * HOURMILLISECOND + endMinutes * MINUTEMILLISECOND;
-
-    var startPercnet = startMilliSecondOfDay/DAYMILLISECOND;
-    var endPercnet = endMilliSecondOfDay/DAYMILLISECOND;
-
-    $('.day-shaft').eq(0).find('.ordered').eq(index).css({
-        left: startPercnet * 100 + '%',
-        width: (endPercnet - startPercnet) * draftWrapper.width()
-    }).data('percent-start', startPercnet)
-    .data('percent-end', endPercnet);
+        function stampToPos(){
+            var orderStartDate = new Date(order.startTime);
+            var orderEndDate = new Date(order.endTime);
+        
+            var startHours = orderStartDate.getHours();
+            var startMinutes = orderStartDate.getMinutes();
+        
+            var endHours = orderEndDate.getHours();
+            var endMinutes = orderEndDate.getMinutes();
+        
+            var startMilliSecondOfDay = startHours * HOURMILLISECOND + startMinutes * MINUTEMILLISECOND;
+            var endMilliSecondOfDay = endHours * HOURMILLISECOND + endMinutes * MINUTEMILLISECOND;
+        
+            return {
+                start: startMilliSecondOfDay/DAYMILLISECOND;,
+                end: endMilliSecondOfDay/DAYMILLISECOND
+            }
+        }
+        
+        $('<div />', {class: 'ordered'}).appendTo(curShaft).css({
+            left: startPercnet * 100 + '%',
+            width: (endPercnet - startPercnet) * draftWrapper.width()
+        }).data('percent-start', startPercnet)
+        .data('percent-end', endPercnet).append(
+            fillZero(startHours) + ':' + fillZero(startMinutes) + ' - '
+            + fillZero(endHours) + ':' + fillZero(endMinutes)
+        );
+    });
 });
 
 (function (){
@@ -200,10 +218,10 @@ function posToTime(x){
     m -= m % 10;
 
     return fillZero(h) + ':' + fillZero(m);
+}
 
-    function fillZero (z){
-        return z < 10 ? '0' + z: z
-    }
+function fillZero (z){
+    return z < 10 ? '0' + z: z
 }
 
 function timeToStamp(time){
@@ -213,4 +231,22 @@ function timeToStamp(time){
     time = wee + Number(time[0]) * HOURMILLISECOND + Number(time[1]) * MINUTEMILLISECOND;
     // console.log(wee, time)
     return time;
+}
+
+function zAjax(url, params, sfn){
+    $.ajax({
+        type: 'GET',
+        url: url,
+        data: params || null,
+        dataType: 'json',
+        timeout: 1300,
+        context: $('body'),
+        success: function(data){
+            // this.append(data.project.html)
+            sfn && sfn(data);
+        },
+        error: function(xhr, type){
+          alert('Ajax error!')
+        }
+    })
 }
