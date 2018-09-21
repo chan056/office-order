@@ -8,34 +8,59 @@
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <div id="rooms">
-        <div class="room">会议室1</div>
-        <div class="room">会议室2</div>
-        <div class="room">会议室3</div>
-    </div>
-
-    <div id="menu">
-        <div class="menu-item">预定</div>
-        <div class="menu-item">取消</div>
-    </div>
+    <div id="rooms"></div>
 
     <div id="shaft-wrapper" class="abs-center">
-        <div class="day-shaft" class="clearfix">
-            <!-- <div class="ordered"></div>
-            <div class="ordered"></div> -->
+        <div id="shaft-0" class="day-shaft">
+            <label for="">今天</label>
+        </div>
+        <div id="shaft-1" class="day-shaft">
+            <label for="">明天</label>
+        </div>
+        <div id="shaft-2" class="day-shaft">
+            <label for="">后天</label>
+        </div>
+        <div id="shaft-3" class="day-shaft">
+            <label for="">3天后</label>
+        </div>
+        <div id="shaft-4" class="day-shaft">
+            <label for="">4天后</label>
+        </div>
+        <div id="shaft-5" class="day-shaft">
+            <label for="">5天后</label>
+        </div>
+        <div id="shaft-6" class="day-shaft">
+            <label for="">6天后</label>
         </div>
     </div>
 
     <div id="day-time-selector">
         <span class="starter handler">
+                <
             <i></i>
         </span>
         <span class="ender handler">
+                >
             <i></i>
         </span>
 
         <input type="button" value="预定" id="order-btn">
     </div>
+
+    <div id="entry" class="abs-center">
+        <input type="button" value="登录" id="to-login">
+        <input type="button" value="注册" id="to-regist">
+    </div>
+
+    <form id="login-panel" class="abs-center">
+        <input type="text" id="name" name="name">
+        <input type="submit" value="登录">
+    </form>
+
+    <form action="" id="regist-panel" class="abs-center">
+        <input type="text" name="name" id="" placeholder="请输入您的真实姓名，便于区分">
+        <input type="submit" value="注册">
+    </form action="">
 </body>
 <script src="node_modules/zepto/dist/zepto.min.js"></script>
 <script src="index.js"></script>

@@ -1,133 +1,249 @@
 var MINUTEMILLISECOND = 60 * 1000;
 var HOURMILLISECOND = 60 * MINUTEMILLISECOND;
-var DAYMILLISECOND = 24 * HOURMILLISECOND;
+var DAYMILLISECOND = 24 * HOURMILLISECOND;// 早9点到晚9点
+var WORKMILLISECOND = DAYMILLISECOND / 2;
+var ORDERSTARTHOUR = 9;
+var ORDERENDHOUR = 21;
 
-var draftWrapper = $('#shaft-wrapper');
+var shaftWrapper = $('#shaft-wrapper');
 var dayTimeSelector = $('#day-time-selector');
-var wrapperWidth = draftWrapper.width();
+var rooms = $('#rooms');
+var wrapperWidth = shaftWrapper.width() || 800;
+var curShaftDayOffset = 0;
+var roomId = 0;
 
-$('.room').on('click', function(){
+rooms.on('click', '.room', function(){
     var t = $(this);
 
-    var offset = t.offset();
+    roomId = t.data('room-id');
+    refreshShaft();
 
-    var menuPos = {
-        left: offset.left,
-        top: offset.top + offset.height
-    }
-
-    $('#menu').css(menuPos)
+    $(this).addClass('active').siblings().removeClass('active');
 })
 
-draftWrapper.on('clik', '.ordered', function(e){
-    // title
-}).on('click', '.day-shaft', function(e){
-    // 24小时 * 6， 10分钟一刻度
-    var t = $(e.target);
-    if(t.is('.ordered'))
-        return
-    
-    var ex = e.clientX
-    var wrapperX = draftWrapper.offset().left
-    var pointPercent = (ex - wrapperX)/wrapperWidth;
-
-    var needBreak = false;
-    var start, end;
-
-    t.find('.ordered').each(function(i, ordered){
-        if(needBreak)
-            return;
-            
-        ordered = $(ordered);
-        var percentStart  = ordered.data('percent-start');
-        var percentEnd  = ordered.data('percent-end');
-        
-        if(pointPercent < percentStart){
-            if(ordered.prev('.ordered').length){
-                start = ordered.prev('.ordered').data('percent-end');
-            }else{
-                start = 0;
-            }
-
-            end = percentStart;
-            needBreak = true;
-            return;
-        }
-
-        if(i == t.find('.ordered').length - 1){
-            console.log(percentEnd)
-            start = percentEnd;
-            end = 1;
+shaftWrapper.on('click', '.ordered', function(e){
+    // 取消预定
+    var t = $(this);
+    var orderId = t.data('order-id');
+    orderId && checkIfOwnOrder(orderId, function(data){
+        if(data){
+            $('.ordered .btn').remove();
+            t.append('<input type="button" class="btn" value="取消"/>');
+            t.find('.btn').on('click', function(e){
+                if(window.confirm('确定取消')){
+                    cancelOrder(orderId);
+                }
+                e.preventDefault()
+            })
         }
     })
 
-    // console.log(start, end)
-    var Y = t.offset().top;
-    var X = wrapperX + start * wrapperWidth
-    var W = (end - start) * wrapperWidth
+    dayTimeSelector.hide();
+}).on('click', '.day-shaft', function(e){
+    // 24小时 * 6， 10分钟一刻度
+    var t = $(e.target);
+    if(t.is('.day-shaft')){
+        var ex = e.clientX
+        var wrapperX = shaftWrapper.offset().left
+        var pointPercent = (ex - wrapperX)/wrapperWidth;
+    
+        var needBreak = false;
+        var start = 0, end = 1;
 
-    dayTimeSelector.css({
-        left: X,
-        top: Y,
-        width: W,
-        display: 'block',
-    }).data('min', X).data('max', X + W)
-
-    $('.starter i').text(posToTime(X));
-    $('.ender i').text(posToTime(X + W));
+        $('.ordered .btn').remove();
+    
+        t.find('.ordered').each(function(i, ordered){
+            if(needBreak)
+                return;
+                
+            ordered = $(ordered);
+            var percentStart  = ordered.data('percent-start');
+            var percentEnd  = ordered.data('percent-end');
+            
+            if(pointPercent < percentStart){
+                if(ordered.prev('.ordered').length){
+                    start = ordered.prev('.ordered').data('percent-end');
+                }else{
+                    start = 0;
+                }
+    
+                end = percentStart;
+                needBreak = true;
+                return;
+            }
+    
+            if(i == t.find('.ordered').length - 1){
+                start = percentEnd;
+                end = 1;
+            }
+        })
+    
+        var Y = t.offset().top;
+        var X = wrapperX + start * wrapperWidth
+        var W = (end - start) * wrapperWidth
+    
+        dayTimeSelector.css({
+            left: X,
+            top: Y,
+            width: W,
+            display: 'block',
+        }).data('min', X).data('max', X + W)
+    
+        $('.starter i').text(posToTime(X));
+        $('.ender i').text(posToTime(X + W));
+    
+        // 设置日期偏移量
+        var n = Number(t.attr('id').split('-')[1]);
+        curShaftDayOffset = n;
+    }
 })
 
 $('#order-btn').on('click', function(){
     dayTimeSelector.hide();
+    var startTime = timeToStamp($('.starter i').text()) + curShaftDayOffset * DAYMILLISECOND;
+    if(startTime > + new Date()){
+        if(!roomId){
+            return alert('请选择办公室')
+        }
+        
+        zAjax('/order', {
+            roomId: roomId,
+            startTime: startTime,
+            endTime: timeToStamp($('.ender i').text()) + curShaftDayOffset * DAYMILLISECOND,
+        }, function(){
+            refreshShaft();
+        })
+    }else{
+        alert('开始时间不能早于现在');
+    }
+})
 
-    zAjax('/order', {
-        startTime: timeToStamp($('.starter i').text()),
-        endTime: timeToStamp($('.ender i').text()),
+function cancelOrder(orderId){
+    zAjax('/cancelOrder', {
+        orderId: orderId,
     }, function(){
+        refreshShaft();
+    })
+}
 
+// ======注册/登录
+$('#to-login').on('click', function(){
+    $('#login-panel').show();
+    $('#entry').hide();
+})
+
+$('#to-regist').on('click', function(){
+    $('#regist-panel').show();
+    $('#entry').hide();
+})
+
+$('#regist-panel').on('submit', function(){
+    arguments[0].preventDefault()
+
+    var name = $.trim($(this).find('[name=name]').val());
+    zAjax('/regist', {
+        name: name,
+    }, function(){
+        alert('注册成功')
+        $('#login-panel').show();
     })
 })
 
-zAjax('/data', null, function(data){
-    // [{"id":1,"startTime":1537413810448,"endTime":1537414410448,"userId":1}]
-    var DATA = data;
+$('#login-panel').on('submit', function(){
 
-    var curShaft = $('.day-shaft').eq(0).empty();
-    
-    DATA.forEach(function(order, index){
-        var orderPosPercent = stampToPos();
-        var startPercnet = orderPosPercent.start;
-        var endPercnet = orderPosPercent.end;
+    arguments[0].preventDefault();
 
-        function stampToPos(){
-            var orderStartDate = new Date(order.startTime);
-            var orderEndDate = new Date(order.endTime);
+    var form = $(this);
+    var name = $.trim(form.find('[name=name]').val());
+
+    zAjax('/login', {
+        name: name
+    }, function(logined){
+        if(logined){
+            makeRooms();
+            form.remove();
+        }else
+            alert('没有该用户,请检查用户名')
+    })
+
+})
+// ======
+
+$(window).on('resize', function(){
+    dayTimeSelector.hide()
+})
+
+checkLogin();
+
+function refreshShaft(){
+    if(!roomId){
+        return alert('请选择办公室')
+    }
+
+    zAjax('/orders', {
+        roomId: roomId
+    }, function(data){
+        // [{"id":1,"startTime":1537413810448,"endTime":1537414410448,"userId":1}]
+        var DATA = data;
+        $('.ordered').remove();
+        dayTimeSelector.hide()
+        shaftWrapper.show();
+        var curShaft;
         
-            var startHours = orderStartDate.getHours();
-            var startMinutes = orderStartDate.getMinutes();
-        
-            var endHours = orderEndDate.getHours();
-            var endMinutes = orderEndDate.getMinutes();
-        
-            var startMilliSecondOfDay = startHours * HOURMILLISECOND + startMinutes * MINUTEMILLISECOND;
-            var endMilliSecondOfDay = endHours * HOURMILLISECOND + endMinutes * MINUTEMILLISECOND;
-        
-            return {
-                start: startMilliSecondOfDay/DAYMILLISECOND;,
-                end: endMilliSecondOfDay/DAYMILLISECOND
-            }
-        }
-        
-        $('<div />', {class: 'ordered'}).appendTo(curShaft).css({
-            left: startPercnet * 100 + '%',
-            width: (endPercnet - startPercnet) * draftWrapper.width()
-        }).data('percent-start', startPercnet)
-        .data('percent-end', endPercnet).append(
-            fillZero(startHours) + ':' + fillZero(startMinutes) + ' - '
-            + fillZero(endHours) + ':' + fillZero(endMinutes)
-        );
+        DATA.forEach(function(order, index){
+
+            var orderPosPercent = stampToPos(order);
+            var startPercnet = orderPosPercent.start;
+            var endPercnet = orderPosPercent.end;
+
+            // 判断几天后
+            var nDay = Math.floor((order.startTime - weeStamp()) / DAYMILLISECOND);
+            var shaftId = 'shaft-' + nDay; 
+            // 修改shaft
+            // if(!$('#' + shaftId).length){
+            //     shaftWrapper.append('<div id="' + shaftId + '" class="day-shaft" class="clearfix"></div>')
+            // }
+
+            curShaft = $('#' + shaftId);
+            var orderTime = fillZero(orderPosPercent.startHours) + ':' + fillZero(orderPosPercent.startMinutes) + ' - '
+                + fillZero(orderPosPercent.endHours) + ':' + fillZero(orderPosPercent.endMinutes);
+
+            $('<div />', {class: 'ordered'}).appendTo(curShaft).css({
+                left: startPercnet * 100 + '%',
+                width: (endPercnet - startPercnet) * wrapperWidth
+            }).data('percent-start', startPercnet)
+                .data('percent-end', endPercnet).append(orderTime)
+                .data('order-id', order.id)
+                .attr('title', orderTime)
+        });
     });
-});
+}
+
+function checkLogin(){
+    zAjax('/checkLogin', null, function(data){
+        if(window.confirm('是否以<<' + data + '>>的身份登录?')){
+            $('#entry').remove();
+            makeRooms();
+        }
+    })
+}
+
+function checkIfOwnOrder(orderId, sfn){
+    zAjax('/checkIfOwnOrder', {orderId: orderId}, function(data){
+        sfn && sfn(data)
+    })
+}
+
+function makeRooms(){
+    zAjax('/rooms', null, function(data){
+        var frag = '';
+        data.forEach(function(room){
+            frag += '<div class="room" data-room-id="'+room.id+'">'+room.name+'</div>'
+        })
+        rooms.html(frag).show();
+        $('.room').eq(0).trigger('click')
+    })
+}
 
 (function (){
     var initialState = {};
@@ -168,8 +284,10 @@ zAjax('/data', null, function(data){
                     w = initialState.width - (min - initialState.left)
                 }
 
-                if(l > max - 10){
-                    l = max - 10;
+                // 左边的最大值 小于 右边界
+                var maxer = Math.min(max, dayTimeSelector.data('max-starter'))
+                if(l > maxer - 10){
+                    l = maxer - 10;
                     w = 10
                 }
 
@@ -192,6 +310,7 @@ zAjax('/data', null, function(data){
                 })
 
                 $('.ender i').text(posToTime(initialState.left + w));
+                dayTimeSelector.data('max-starter', initialState.left + w)
             }
 
             e.preventDefault();
@@ -207,10 +326,32 @@ zAjax('/data', null, function(data){
     })
 })()
 
+function stampToPos(order){
+    var orderStartDate = new Date(order.startTime);
+    var orderEndDate = new Date(order.endTime);
+
+    var startHours = orderStartDate.getHours();
+    var startMinutes = orderStartDate.getMinutes();
+
+    var endHours = orderEndDate.getHours();
+    var endMinutes = orderEndDate.getMinutes();
+
+    var startMilliSecondOfDay = startHours * HOURMILLISECOND + startMinutes * MINUTEMILLISECOND;
+    var endMilliSecondOfDay = endHours * HOURMILLISECOND + endMinutes * MINUTEMILLISECOND;
+
+    return {
+        start: (startMilliSecondOfDay - ORDERSTARTHOUR * HOURMILLISECOND) / WORKMILLISECOND ,
+        end: (endMilliSecondOfDay - ORDERSTARTHOUR * HOURMILLISECOND) / WORKMILLISECOND,
+        startHours: startHours,
+        startMinutes: startMinutes,
+        endHours: endHours,
+        endMinutes: endMinutes,
+    }
+}
 
 function posToTime(x){
-    var p = (x - draftWrapper.offset().left)/draftWrapper.width();
-    var time = p * DAYMILLISECOND;
+    var p = (x - shaftWrapper.offset().left) / wrapperWidth;
+    var time = p * WORKMILLISECOND + ORDERSTARTHOUR * HOURMILLISECOND;
     
     var h = Math.floor(time / HOURMILLISECOND);
     var m = Math.floor(time % HOURMILLISECOND / MINUTEMILLISECOND);
@@ -224,12 +365,16 @@ function fillZero (z){
     return z < 10 ? '0' + z: z
 }
 
+function weeStamp(){
+    return +new Date(new Date().setHours(0, 0, 0, 0))
+}
+
 function timeToStamp(time){
-    var wee = + new Date(new Date().setHours(0, 0, 0, 0))
+    var wee = weeStamp();
 
     time = time.split(':');
     time = wee + Number(time[0]) * HOURMILLISECOND + Number(time[1]) * MINUTEMILLISECOND;
-    // console.log(wee, time)
+
     return time;
 }
 
@@ -239,14 +384,13 @@ function zAjax(url, params, sfn){
         url: url,
         data: params || null,
         dataType: 'json',
-        timeout: 1300,
+        // timeout: 1300,
         context: $('body'),
         success: function(data){
-            // this.append(data.project.html)
             sfn && sfn(data);
         },
         error: function(xhr, type){
-          alert('Ajax error!')
+          console.error(arguments)
         }
     })
 }

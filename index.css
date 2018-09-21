@@ -19,13 +19,32 @@ li {
   clear: both;
   visibility: hidden;
 }
+html {
+  font-size: 10px;
+}
+body {
+  font-size: 1.8rem;
+}
+#rooms,
+#shaft-wrapper,
+#day-time-selector {
+  display: none;
+}
 #rooms {
   display: flex;
+  text-align: center;
 }
 .room {
   flex-basis: 100px;
   flex-grow: 1;
   height: 100px;
+  line-height: 100px;
+  font-size: 3rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+.room.active {
+  background-color: tomato;
 }
 #menu {
   position: absolute;
@@ -40,9 +59,12 @@ li {
 #shaft-wrapper {
   width: 800px;
   min-height: 200px;
+  background-color: #fff;
 }
 .day-shaft {
   height: 60px;
+  position: relative;
+  cursor: pointer;
 }
 .day-shaft .ordered {
   position: absolute;
@@ -51,6 +73,18 @@ li {
   height: 60px;
   text-align: center;
   color: #fff;
+}
+.day-shaft .ordered .btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.day-shaft label {
+  position: absolute;
+  left: -60px;
+  top: 18px;
+  font-weight: bold;
 }
 #day-time-selector {
   position: absolute;
@@ -64,17 +98,20 @@ li {
   width: 20px;
   height: 20px;
   box-sizing: border-box;
-  border: 1px solid;
   top: 50%;
   margin-top: -10px;
   background-color: #333;
   cursor: e-resize;
+  line-height: 20px;
+  text-align: center;
+  color: #fff;
 }
 #day-time-selector .handler i {
   position: relative;
   top: -40px;
   left: -10px;
   font-style: normal;
+  color: #000;
 }
 #day-time-selector .starter {
   left: -10px;
@@ -84,6 +121,11 @@ li {
 }
 #day-time-selector #order-btn {
   position: absolute;
-  top: 60px;
-  left: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+#regist-panel,
+#login-panel {
+  display: none;
 }

@@ -49,8 +49,14 @@ var server = http.createServer(function (request, response) {
         let connection = connect();
         let urlObj = require('url').parse(request.url, true);
         let query = urlObj.query;
-        if(urlObj.pathname == '/data'){
-            let sql = `select * from \`order\` where startTime > ${+new Date()} order by startTime`;
+
+        // 检查用户是否登录
+        const cookie = require('cookie');
+        var cookies = cookie.parse(request.headers.cookie || '');
+        var sid = cookies.sid;
+
+        if(urlObj.pathname == '/orders'){
+            let sql = `select * from \`order\` where startTime > ${+new Date()} and roomId=${query.roomId} order by startTime`;
             connection.query(sql, function (err, list, fields) {
                 if(err)
                     console.log(err);
@@ -58,13 +64,89 @@ var server = http.createServer(function (request, response) {
                response.end(JSON.stringify(list));
             })
         }else if(pathname == '/order'){
-            let sql = `INSERT INTO \`order\` (startTime, endTime) VALUES ('${query.startTime}', '${query.endTime}')`
+            if(sid){
+                let sql = `INSERT INTO \`order\` (startTime, endTime, userId, roomId) VALUES ('${query.startTime}', '${query.endTime}', ${sid}, ${query.roomId})`
+
+                connection.query(sql, function (err, list, fields) {
+                    if(err)
+                        console.log(err);
+    
+                   response.end();
+                })
+            }/* else{
+                response.statusCode = 400;
+                response.end()
+            } */
+        }else if(pathname == '/cancelOrder'){
+            if(sid){
+                let sql = `delete from \`order\` where id=${query.orderId}`
+
+                connection.query(sql, function (err, list, fields) {
+                    if(err)
+                        console.log(err);
+    
+                        console.log(arguments)
+                   response.end();
+                })
+            }
+        }else if(pathname == '/regist'){
+            let sql = `INSERT INTO \`user\` (name) VALUES ('${query.name}')`
 
             connection.query(sql, function (err, list, fields) {
                 if(err)
                     console.log(err);
 
                response.end();
+            })
+        }else if(pathname == '/login'){
+            let sql = `select * from \`user\` where name='${query.name}'`
+
+            connection.query(sql, function (err, list, fields) {
+                if(err)
+                    console.log(err);
+
+                if(list.length){
+                    response.setHeader('Set-Cookie', cookie.serialize('sid', String(list[0].id), {
+                        httpOnly: true,
+                        maxAge: 60 * 60 * 24
+                    }));
+
+                    response.end('1');
+                }else{
+                    response.end('0');
+                }
+            })
+        }else if(pathname == '/checkLogin'){
+            if(sid){
+                var sql = `select name from \`user\` where id=${sid}`;
+                connection.query(sql, function (err, list, fields) {
+                    if(err)
+                        console.log(err);
+
+                    response.end(JSON.stringify(list[0].name))
+                })
+            }
+        }else if(pathname == '/checkIfOwnOrder'){
+            if(sid){
+                var sql = `select * from \`order\` where id=${query.orderId} and userId=${sid}`;
+                connection.query(sql, function (err, list, fields) {
+                    if(err)
+                        console.log(err);
+
+                    if(list.length){
+                        response.end('1')
+                    }else{
+                        response.end('0')
+                    }
+                })
+            }
+        }else if(pathname == '/rooms'){
+            let sql = `select * from \`room\``;
+            connection.query(sql, function (err, list, fields) {
+                if(err)
+                    console.log(err);
+                    
+                response.end(JSON.stringify(list));
             })
         }
     }
