@@ -6,8 +6,8 @@ var fs = require('fs');
 var mine = require('./mine').types;
 var path = require('path');
 
-var server = http.createServer(function (request, response) {
-    var pathname = url.parse(request.url).pathname;
+var server = http.createServer(function (req, res) {
+    var pathname = url.parse(req.url).pathname;
     if (pathname.charAt(pathname.length - 1) == "/") {
         //如果访问目录
         pathname += "index.html"; //指定为默认网页
@@ -20,48 +20,61 @@ var server = http.createServer(function (request, response) {
         ext = ext ? ext.slice(1) : 'unknown';
         fs.exists(realPath, function (exists) {
             if (!exists) {
-                response.writeHead(404, {
+                res.writeHead(404, {
                     'Content-Type': 'text/plain'
                 });
     
-                response.write("This request URL " + pathname + " was not found on this server.");
-                response.end();
+                res.write("This req URL " + pathname + " was not found on this server.");
+                res.end();
             } else {
                 fs.readFile(realPath, "binary", function (err, file) {
                     if (err) {
-                        response.writeHead(500, {
+                        res.writeHead(500, {
                             'Content-Type': 'text/plain'
                         });
                         console.log(err);
-                        response.end(err+"");
+                        res.end(err+"");
                     } else {
                         var contentType = mine[ext] || "text/plain";
-                        response.writeHead(200, {
+                        res.writeHead(200, {
                             'Content-Type': contentType
                         });
-                        response.write(file, "binary");
-                        response.end();
+                        res.write(file, "binary");
+                        res.end();
                     }
                 });
             }
         });
     }else{
+        // 后期这块需要独立
+        // 是需要区分请求类型
         let connection = connect();
-        let urlObj = require('url').parse(request.url, true);
+        let urlObj = require('url').parse(req.url, true);
         let query = urlObj.query;
 
         // 检查用户是否登录
         const cookie = require('cookie');
-        var cookies = cookie.parse(request.headers.cookie || '');
+        var cookies = cookie.parse(req.headers.cookie || '');
         var sid = cookies.sid;
 
         if(urlObj.pathname == '/orders'){
-            let sql = `select * from \`order\` where startTime > ${+new Date()} and roomId=${query.roomId} order by startTime`;
+            let sql = `SELECT
+                o.*,
+                u.name
+            FROM
+                \`order\` o
+            INNER JOIN \`user\` u ON o.userId = u.id
+            WHERE
+                o.startTime >  ${+new Date()}
+            AND o.roomId = ${query.roomId} 
+            ORDER BY
+                o.startTime`;
+
             connection.query(sql, function (err, list, fields) {
                 if(err)
                     console.log(err);
                     
-               response.end(JSON.stringify(list));
+               res.end(JSON.stringify(list));
             })
         }else if(pathname == '/order'){
             if(sid){
@@ -71,11 +84,11 @@ var server = http.createServer(function (request, response) {
                     if(err)
                         console.log(err);
     
-                   response.end();
+                   res.end();
                 })
             }/* else{
-                response.statusCode = 400;
-                response.end()
+                res.statusCode = 400;
+                res.end()
             } */
         }else if(pathname == '/cancelOrder'){
             if(sid){
@@ -86,7 +99,7 @@ var server = http.createServer(function (request, response) {
                         console.log(err);
     
                         console.log(arguments)
-                   response.end();
+                   res.end();
                 })
             }
         }else if(pathname == '/regist'){
@@ -96,7 +109,7 @@ var server = http.createServer(function (request, response) {
                 if(err)
                     console.log(err);
 
-               response.end();
+               res.end();
             })
         }else if(pathname == '/login'){
             let sql = `select * from \`user\` where name='${query.name}'`
@@ -106,14 +119,14 @@ var server = http.createServer(function (request, response) {
                     console.log(err);
 
                 if(list.length){
-                    response.setHeader('Set-Cookie', cookie.serialize('sid', String(list[0].id), {
+                    res.setHeader('Set-Cookie', cookie.serialize('sid', String(list[0].id), {
                         httpOnly: true,
                         maxAge: 60 * 60 * 24
                     }));
 
-                    response.end('1');
+                    res.end('1');
                 }else{
-                    response.end('0');
+                    res.end('0');
                 }
             })
         }else if(pathname == '/checkLogin'){
@@ -123,7 +136,7 @@ var server = http.createServer(function (request, response) {
                     if(err)
                         console.log(err);
 
-                    response.end(JSON.stringify(list[0].name))
+                    res.end(JSON.stringify(list[0].name))
                 })
             }
         }else if(pathname == '/checkIfOwnOrder'){
@@ -134,9 +147,9 @@ var server = http.createServer(function (request, response) {
                         console.log(err);
 
                     if(list.length){
-                        response.end('1')
+                        res.end('1')
                     }else{
-                        response.end('0')
+                        res.end('0')
                     }
                 })
             }
@@ -146,7 +159,51 @@ var server = http.createServer(function (request, response) {
                 if(err)
                     console.log(err);
                     
-                response.end(JSON.stringify(list));
+                res.end(JSON.stringify(list));
+            })
+        }else if(pathname == '/rooms'){
+            let sql = `select * from \`room\``;
+            connection.query(sql, function (err, list, fields) {
+                if(err)
+                    console.log(err);
+                    
+                res.end(JSON.stringify(list));
+            })
+        }else if(pathname == '/room/delete'){
+            let sql = `delete from \`room\` where id=${query.id}`;
+            connection.query(sql, function (err, list, fields) {
+                if(err)
+                    console.log(err);
+                
+                if(list.affectedRows == 1){
+                    res.end('1')
+                }else{
+                    res.end('0')
+                }
+            })
+        }else if(pathname == '/room/add'){
+            let sql = `insert into \`room\` (name) values ('${query.name}')`;
+            connection.query(sql, function (err, list, fields) {
+                if(err)
+                    console.log(err);
+                
+                if(list.insertId){
+                    res.end('1')
+                }else{
+                    res.end('0')
+                }
+            })
+        }else if(pathname == '/room/edit'){
+            let sql = `update \`room\` set name='${query.name}' where id=${query.id}`;
+            connection.query(sql, function (err, list, fields) {
+                if(err)
+                    console.log(err);
+                
+                if(list.affectedRows == 1){
+                    res.end('1')
+                }else{
+                    res.end('0')
+                }
             })
         }
     }
@@ -175,7 +232,7 @@ function connect(){
         connection.connect(function (err) {
             if (err) {
                 console.log('error when connecting to db:', err);
-                setTimeout(handleDisconnect, 2000);
+                // setTimeout(handleDisconnect, 2000);
             }
         });
 

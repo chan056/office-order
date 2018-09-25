@@ -4,7 +4,9 @@ body {
 }
 div,
 li {
-  box-shadow: 0 0 1px #ddd;
+  /* box-shadow: 0 0 1px #ddd; */
+  border: 1px solid #ddd;
+  box-sizing: border-box;
 }
 .abs-center {
   position: absolute;
@@ -19,11 +21,28 @@ li {
   clear: both;
   visibility: hidden;
 }
+* {
+  /*ios，如果不行可以加一个透明遮罩层*/
+  -webkit-touch-callout: none;
+  touch-callout: none;
+  /*安卓*/
+  -webkit-user-select: none;
+  user-select: none;
+}
 html {
   font-size: 10px;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
   font-size: 1.8rem;
+}
+form {
+  padding: 40px;
+  background-color: #eee;
+}
+input {
+  min-height: 30px;
+  border: 1px solid #aaa;
 }
 #rooms,
 #shaft-wrapper,
@@ -35,6 +54,7 @@ body {
   text-align: center;
 }
 .room {
+  position: relative;
   flex-basis: 100px;
   flex-grow: 1;
   height: 100px;
@@ -45,6 +65,14 @@ body {
 }
 .room.active {
   background-color: tomato;
+  color: #fff;
+}
+.room .btns {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  line-height: initial;
+  border-width: 0;
 }
 #menu {
   position: absolute;
@@ -57,7 +85,7 @@ body {
   cursor: pointer;
 }
 #shaft-wrapper {
-  width: 800px;
+  width: 60%;
   min-height: 200px;
   background-color: #fff;
 }
@@ -95,29 +123,28 @@ body {
 }
 #day-time-selector .handler {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 4rem;
+  height: 60px;
+  line-height: 60px;
   box-sizing: border-box;
-  top: 50%;
-  margin-top: -10px;
   background-color: #333;
   cursor: e-resize;
-  line-height: 20px;
   text-align: center;
   color: #fff;
+  touch-action: none;
 }
 #day-time-selector .handler i {
   position: relative;
-  top: -40px;
-  left: -10px;
+  top: -100px;
+  left: -2px;
   font-style: normal;
   color: #000;
 }
 #day-time-selector .starter {
-  left: -10px;
+  left: -2rem;
 }
 #day-time-selector .ender {
-  right: -10px;
+  right: -2rem;
 }
 #day-time-selector #order-btn {
   position: absolute;
@@ -128,4 +155,11 @@ body {
 #regist-panel,
 #login-panel {
   display: none;
+}
+#room-panel {
+  display: none;
+}
+#room-add-wrapper {
+  display: none;
+  text-align: center;
 }

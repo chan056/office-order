@@ -8,17 +8,82 @@ var ORDERENDHOUR = 21;
 var shaftWrapper = $('#shaft-wrapper');
 var dayTimeSelector = $('#day-time-selector');
 var rooms = $('#rooms');
-var wrapperWidth = shaftWrapper.width() || 800;
+var roomPanel = $('#room-panel');
+
+var wrapperWidth = $(window).width() * 0.6;// shaftWrapper.width() || 800;
 var curShaftDayOffset = 0;
 var roomId = 0;
 
-rooms.on('click', '.room', function(){
+rooms.on('click', '.room', function(e){
     var t = $(this);
+    if($(e.target).is('input'))
+        return;
 
     roomId = t.data('room-id');
     refreshShaft();
 
     $(this).addClass('active').siblings().removeClass('active');
+}).on('click', '.room-delete-btn', function(){
+    var roomId = $(this).parents('.room').data('room-id');
+    console.log(roomId)
+    if(window.confirm('确认删除？')){
+        zAjax('/room/delete', {
+            id: roomId,
+        }, function(data){
+            makeRooms();
+            roomPanel.hide().get(0).reset();
+            if(data){
+                alert('删除成功')
+            }else{
+                alert('删除失败')
+            }
+        })
+    }
+    arguments[0].preventDefault();
+}).on('click', '.room-edit-btn', function(){
+    var roomId = $(this).parents('.room').data('room-id');
+    roomPanel.show().off('submit').on('submit', function(){
+        var roomName = $.trim(roomPanel.find('.room-name').val());
+
+        if(!roomName)
+            return alert('请输入办公室名')
+
+        zAjax('/room/edit', {
+            id: roomId,
+            name: roomName
+        }, function(data){
+            makeRooms();
+            roomPanel.hide().get(0).reset();
+            if(data){
+                alert('更新成功')
+            }else{
+                alert('更新失败')
+            }
+        })
+        arguments[0].preventDefault();
+    });
+});
+
+$('#room-add-btn').on('click', function(){
+    roomPanel.show().off('submit').on('submit', function(){
+        var roomName = $.trim(roomPanel.find('.room-name').val());
+
+        if(!roomName)
+            return alert('请输入办公室名')
+
+        zAjax('/room/add', {
+            name: roomName
+        }, function(data){
+            makeRooms();
+            roomPanel.hide().get(0).reset();
+            if(data){
+                alert('新增成功')
+            }else{
+                alert('新增失败')
+            }
+        })
+        arguments[0].preventDefault();
+    });
 })
 
 shaftWrapper.on('click', '.ordered', function(e){
@@ -77,10 +142,10 @@ shaftWrapper.on('click', '.ordered', function(e){
                 end = 1;
             }
         })
-    
+        // console.log(start, end)
         var Y = t.offset().top;
-        var X = wrapperX + start * wrapperWidth
-        var W = (end - start) * wrapperWidth
+        var X = wrapperX + start * wrapperWidth;
+        var W = (end - start) * wrapperWidth;
     
         dayTimeSelector.css({
             left: X,
@@ -95,6 +160,9 @@ shaftWrapper.on('click', '.ordered', function(e){
         // 设置日期偏移量
         var n = Number(t.attr('id').split('-')[1]);
         curShaftDayOffset = n;
+
+        // 重置起始点最大移动范围
+        dayTimeSelector.removeAttr('data-max-starter');
     }
 })
 
@@ -205,14 +273,15 @@ function refreshShaft(){
             // }
 
             curShaft = $('#' + shaftId);
-            var orderTime = fillZero(orderPosPercent.startHours) + ':' + fillZero(orderPosPercent.startMinutes) + ' - '
+            var orderTime = fillZero(orderPosPercent.startHours) + ':' + fillZero(orderPosPercent.startMinutes) + '-'
                 + fillZero(orderPosPercent.endHours) + ':' + fillZero(orderPosPercent.endMinutes);
+            var orderUsername = order.name;
 
             $('<div />', {class: 'ordered'}).appendTo(curShaft).css({
                 left: startPercnet * 100 + '%',
                 width: (endPercnet - startPercnet) * wrapperWidth
             }).data('percent-start', startPercnet)
-                .data('percent-end', endPercnet).append(orderTime)
+                .data('percent-end', endPercnet).append(orderTime + '<br/>' + orderUsername)
                 .data('order-id', order.id)
                 .attr('title', orderTime)
         });
@@ -238,10 +307,17 @@ function makeRooms(){
     zAjax('/rooms', null, function(data){
         var frag = '';
         data.forEach(function(room){
-            frag += '<div class="room" data-room-id="'+room.id+'">'+room.name+'</div>'
+            frag += '<div class="room" data-room-id="'+room.id+'">'
+                    + room.name
+                    + '<div class="btns">'
+                        + '<input type="button" value="删除" class="room-delete-btn"/>'
+                        + '<input type="button" value="编辑" class="room-edit-btn"/>'
+                    + '</div>'
+                + '</div>'
         })
-        rooms.html(frag).show();
-        $('.room').eq(0).trigger('click')
+        rooms.empty().html(frag).show();
+        rooms.find('.room').eq(0).trigger('click')
+        $('#room-add-wrapper').show();
     })
 }
 
@@ -255,7 +331,7 @@ function makeRooms(){
         initialState = {
             left: parseInt(dayTimeSelector.css('left')),
             width: dayTimeSelector.width(),
-            startPointX: e.clientX,
+            startPointX: e.touches? e.touches[0].clientX: e.clientX,
         }
 
         var target = $(e.target);
@@ -264,17 +340,17 @@ function makeRooms(){
         }else if(target.is('.ender')){
             initialState.target = 2;
         }
-        
         dragging = true;
 
         min = Number(dayTimeSelector.data('min')),
         max = Number(dayTimeSelector.data('max'));
 
+        e.preventDefault();
     })
     
     $(window).on('mousemove touchmove', function(e){
         if(dragging){
-            var gapX = e.clientX - initialState.startPointX;
+            var gapX = (e.touches? e.touches[0].clientX: e.clientX) - initialState.startPointX;
             if(initialState.target == 1){
                 var l = initialState.left + gapX;
                 var w = initialState.width - gapX;
@@ -285,7 +361,9 @@ function makeRooms(){
                 }
 
                 // 左边的最大值 小于 右边界
-                var maxer = Math.min(max, dayTimeSelector.data('max-starter'))
+                var maxer = dayTimeSelector.data('max-starter')
+                    ?Math.min(max, dayTimeSelector.data('max-starter'))
+                    :max;
                 if(l > maxer - 10){
                     l = maxer - 10;
                     w = 10
@@ -391,6 +469,7 @@ function zAjax(url, params, sfn){
         },
         error: function(xhr, type){
           console.error(arguments)
+          alert('请求出错：' + type)
         }
     })
 }

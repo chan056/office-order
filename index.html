@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=0.7">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>会议室</title>
     <link rel="stylesheet" href="index.css">
 </head>
-<body>
+<body onselectedstart="javascript:return false;">
     <div id="rooms"></div>
+    <div id="room-add-wrapper">
+        <input type="button" id="room-add-btn" value="新增会议室">
+    </div>
 
     <div id="shaft-wrapper" class="abs-center">
         <div id="shaft-0" class="day-shaft">
@@ -60,6 +63,12 @@
     <form action="" id="regist-panel" class="abs-center">
         <input type="text" name="name" id="" placeholder="请输入您的真实姓名，便于区分">
         <input type="submit" value="注册">
+    </form action="">
+
+    <form action="" id="room-panel" class="abs-center">
+        <input type="text" name="name" id="" placeholder="请输入房间名" class="room-name">
+        <input type="submit" value="提交">
+        <input type="button" value="取消" onclick="this.parentNode.style.display='none'">
     </form action="">
 </body>
 <script src="node_modules/zepto/dist/zepto.min.js"></script>

@@ -1,19 +1,31 @@
 body{padding: 0; margin: 0;}
-div, li{box-shadow: 0 0 1px #ddd;}
+div, li{/* box-shadow: 0 0 1px #ddd; */ border: 1px solid #ddd; box-sizing: border-box;}
 
 .abs-center{position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);}
 .clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
 .ipt{}
 
+* {
+    /*ios，如果不行可以加一个透明遮罩层*/
+    -webkit-touch-callout:none;
+    touch-callout:none;
 
-html{font-size: 10px;}
+    /*安卓*/
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+html{font-size: 10px; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);}
 body{font-size: 1.8rem;}
+form{padding: 40px; background-color: #eee;}
+input{min-height: 30px; border: 1px solid #aaa;}
 #rooms, #shaft-wrapper, #day-time-selector{display: none;}
 
 #rooms{display: flex; text-align: center;}
 .room{
-    flex-basis: 100px; flex-grow: 1; height: 100px; line-height: 100px; font-size: 3rem; font-weight: bold; cursor: pointer;
-    &.active{background-color: tomato;}
+    position: relative; flex-basis: 100px; flex-grow: 1; height: 100px; line-height: 100px; font-size: 3rem; font-weight: bold; cursor: pointer;
+    &.active{background-color: tomato; color: #fff;}
+    .btns{position: absolute; right: 0; bottom: 0; line-height: initial; border-width: 0;}
 }
 
 #menu{
@@ -27,7 +39,7 @@ body{font-size: 1.8rem;}
     }
 }
 
-#shaft-wrapper{width: 800px; min-height: 200px; background-color: #fff;}
+#shaft-wrapper{width: 60%; min-height: 200px; background-color: #fff;}
 
 .day-shaft{
     height: 60px; position: relative; cursor: pointer;
@@ -53,14 +65,14 @@ body{font-size: 1.8rem;}
 #day-time-selector{
     position: absolute; height: 60px; min-width: 10px; display: none; background-color: #ccc;
     .handler{
-        position: absolute; width: 20px; height: 20px; box-sizing: border-box; top: 50%; margin-top: -10px; background-color: #333; cursor: e-resize; line-height: 20px; text-align: center; color: #fff;
-        i{position: relative; top: -40px; left: -10px; font-style: normal; color: #000;}
+        position: absolute; width: 4rem; height: 60px; line-height: 60px; box-sizing: border-box; background-color: #333; cursor: e-resize; text-align: center; color: #fff; touch-action: none;
+        i{position: relative; top: -100px; left: -2px; font-style: normal; color: #000;}
     }
     .starter{
-        left: -10px;
+        left: -2rem;
     }
     .ender{
-        right: -10px;
+        right: -2rem;
     }
 
     #order-btn{.abs-center}
@@ -69,3 +81,7 @@ body{font-size: 1.8rem;}
 // 注册 登录
 
 #regist-panel, #login-panel{display: none;}
+
+// 房间新增和更新
+#room-panel{display: none;}
+#room-add-wrapper{display: none; text-align: center;}
