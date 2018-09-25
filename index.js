@@ -238,7 +238,8 @@ $('#login-panel').on('submit', function(){
 // ======
 
 $(window).on('resize', function(){
-    dayTimeSelector.hide()
+    dayTimeSelector.hide();
+    wrapperWidth = $(window).width() * 0.6
 })
 
 checkLogin();

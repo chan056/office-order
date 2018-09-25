@@ -43,6 +43,16 @@ form {
 input {
   min-height: 30px;
   border: 1px solid #aaa;
+  line-height: 40px;
+  min-width: 100px;
+  font-size: 1.6rem;
+}
+input[type=button],
+input[type=submit] {
+  cursor: pointer;
+}
+input[type=text] {
+  text-indent: 1em;
 }
 #rooms,
 #shaft-wrapper,
