@@ -146,7 +146,7 @@ var server = http.createServer(function (req, res) {
                     if(err)
                         console.log(err);
 
-                    if(list.length){
+                    if(list && list.length){
                         res.end('1')
                     }else{
                         res.end('0')
