@@ -21,13 +21,10 @@ li {
   clear: both;
   visibility: hidden;
 }
-* {
-  /*ios，如果不行可以加一个透明遮罩层*/
-  -webkit-touch-callout: none;
-  touch-callout: none;
-  /*安卓*/
-  -webkit-user-select: none;
-  user-select: none;
+.text-eclipse {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
 }
 html {
   font-size: 10px;
@@ -112,6 +109,11 @@ input[type=text] {
   height: 60px;
   text-align: center;
   color: #fff;
+  font-size: 14px;
+  color: tomato;
+  word-break: keep-all;
+  overflow: visible;
+  text-shadow: 2px 2px 3px #e81d27;
 }
 .day-shaft .ordered .btn {
   position: absolute;

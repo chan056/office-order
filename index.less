@@ -3,17 +3,20 @@ div, li{/* box-shadow: 0 0 1px #ddd; */ border: 1px solid #ddd; box-sizing: bord
 
 .abs-center{position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);}
 .clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
-.ipt{}
-
-* {
-    /*ios，如果不行可以加一个透明遮罩层*/
-    -webkit-touch-callout:none;
-    touch-callout:none;
-
-    /*安卓*/
-    -webkit-user-select: none;
-    user-select: none;
+.text-eclipse{
+    overflow : hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
 }
+// * {
+//     /*ios，如果不行可以加一个透明遮罩层*/
+//     -webkit-touch-callout:none;
+//     touch-callout:none;
+
+//     /*安卓*/
+//     -webkit-user-select: none;
+//     user-select: none;
+// }
 
 html{font-size: 10px; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);}
 body{font-size: 1.8rem;}
@@ -54,6 +57,11 @@ input[type=text]{text-indent: 1em;}
         color: #fff;
 
         .btn{.abs-center}
+        font-size: 14px;
+        color: tomato;
+        word-break: keep-all;
+        overflow: visible;
+        text-shadow: 2px 2px 3px #e81d27;
     }
 
     label{

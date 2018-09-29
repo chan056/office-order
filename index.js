@@ -274,8 +274,10 @@ function refreshShaft(){
             // }
 
             curShaft = $('#' + shaftId);
-            var orderTime = fillZero(orderPosPercent.startHours) + ':' + fillZero(orderPosPercent.startMinutes) + '-'
+            var orderTime = fillZero(orderPosPercent.startHours) + ':' + fillZero(orderPosPercent.startMinutes) + '<br/>'
                 + fillZero(orderPosPercent.endHours) + ':' + fillZero(orderPosPercent.endMinutes);
+            var orderTimeTitle = fillZero(orderPosPercent.startHours) + ':' + fillZero(orderPosPercent.startMinutes) + '-'
+            + fillZero(orderPosPercent.endHours) + ':' + fillZero(orderPosPercent.endMinutes);
             var orderUsername = order.name;
 
             $('<div />', {class: 'ordered'}).appendTo(curShaft).css({
@@ -284,7 +286,7 @@ function refreshShaft(){
             }).data('percent-start', startPercnet)
                 .data('percent-end', endPercnet).append(orderTime + '<br/>' + orderUsername)
                 .data('order-id', order.id)
-                .attr('title', orderTime)
+                .attr('title', orderTimeTitle)
         });
     });
 }
